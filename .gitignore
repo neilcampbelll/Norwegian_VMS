@@ -1,0 +1,15 @@
+# Ignore everything by default
+*
+
+# But include these R scripts
+!data_create_eflalo.R
+!data_create_tacsat.R
+!data_download.R
+!data_functions.R
+!data_get_target_species.R
+!data_libraries.R
+!data_script.R
+!data_target_assemblage_mapping.R
+
+# Don't ignore .gitignore itself
+!.gitignore
