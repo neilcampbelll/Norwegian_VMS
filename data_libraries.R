@@ -1,3 +1,6 @@
+library(devtools)
+install_github("nielshintzen/vmstools/vmstools/")
+
 library(dplyr)
 library(lubridate)
 library(vmstools)
