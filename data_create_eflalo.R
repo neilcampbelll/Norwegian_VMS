@@ -2,6 +2,28 @@
 # Read in the look-up table
 target_species <- read.csv("results/target_species.csv")
 
+## Clean up the gear codes with a look-up table developed in data_invalid_gears.R
+
+# define a gear mapping - this is my best guess, being precautionary e.g. al LL are LLS
+gear_mapping <- tribble(
+  ~LE_GEAR, ~correct_gear, ~action,    ~notes,
+  "TBS",    "TBB",         "replace",  "Trawl, beam, shrimp -> Beam trawl",
+  "PS1",    "PS",          "replace",  "Purse seine type 1 -> Purse seine",
+  "PS2",    "PS",          "replace",  "Purse seine type 2 -> Purse seine",
+  "GEN",    "GTR",         "replace",  "Trammel net (sole) -> Trammel net",
+  "LL",     "LLS",         "replace",  "Longline -> Set longline (precautionary, seabed impact)",
+  "TB",     "TBB",         "replace",  "Trawl, beam -> Beam trawl",
+  "SV",     "OTB",         "replace",  "Unknown code -> Bottom otter trawl",
+  "TM",     "OTM",         "replace",  "Midwater trawl -> Midwater otter trawl",
+  "TBN",    "OTB",         "replace",  "Bottom trawl, nephrops -> Bottom otter trawl",
+  "TMS",    "OTM",         "replace",  "Midwater trawl variant -> Midwater otter trawl",
+  "HAR",    NA_character_, "exclude",  "Harpoons - excluded from analysis",
+  "HMP",    "LHM",         "replace",  "Hand and pole lines -> Hand and pole lines (mechanised)",
+  "OT",     "OTB",         "replace",  "Otter trawl -> Bottom otter trawl",
+  "SND",    "SDN",         "replace",  "Mistyping of Danish seine",
+  "NK",     "MIS",         "replace",  "Not known -> Miscellaneous gear"
+)
+
 
 for(years in 2011:2024){
 
@@ -268,6 +290,7 @@ final_data <- final_data %>%
 combined_data <- aggregated_trips %>%
   left_join(final_data, by = c("joining_id"))
 
+target_species <- read.csv("results/target_species.csv")
 
 eflalo <- combined_data %>%
   mutate(
@@ -289,6 +312,69 @@ eflalo <- combined_data %>%
   filter(!is.na(FT_REF))
 
 
-save(eflalo, file = paste0("results/Eflalo", years, ".RData"))
+
+# Apply the mapping
+eflalo_gear_fixed <- eflalo %>%
+  left_join(gear_mapping, by = "LE_GEAR") %>%
+  mutate(
+    LE_GEAR_ORIGINAL = LE_GEAR,
+    LE_GEAR = case_when(
+      action == "exclude" ~ NA_character_,
+      action == "replace" ~ correct_gear,
+      TRUE ~ LE_GEAR
+    )
+  )
+
+# Remove excluded records (HAR - harpoons)
+excluded_records <- eflalo_gear_fixed %>%
+  filter(is.na(LE_GEAR))
+
+if (nrow(excluded_records) > 0) {
+  cat("\nExcluding", nrow(excluded_records), "records with gear type HAR (harpoons)\n")
+  cat("Excluded gear types:\n")
+  print(excluded_records %>% 
+          group_by(LE_GEAR_ORIGINAL) %>% 
+          tally() %>%
+          arrange(desc(n)))
+}
+
+eflalo_gear_fixed <- eflalo_gear_fixed %>%
+  filter(!is.na(LE_GEAR))
+
+# Clean up
+eflalo <- eflalo_gear_fixed %>%
+  select(-correct_gear, -action, -notes)
+rm(eflalo_gear_fixed)
+
+
+
+metier_lookup <- m6_ices %>%
+  mutate(components = strsplit(Key, "_")) %>%
+  rowwise() %>%
+  mutate(
+    L4_gear = components[1],
+    L5_target = components[2],
+    mesh_range = components[3],
+    sel_dev1 = components[4],
+    sel_dev2 = components[5]
+  ) %>%
+  ungroup() %>%
+  select(L4_gear, L5_target, mesh_range, sel_dev1, sel_dev2) %>%
+  filter(sel_dev1 == "0" & sel_dev2 == "0")
+
+gear_target_ranges <- metier_lookup %>%
+  group_by(L4_gear, L5_target) %>%
+  summarise(available_ranges = list(mesh_range), .groups = "drop")
+
+eflalo <- eflalo %>%
+  rowwise() %>%
+  mutate(
+    LE_MET_ORIGINAL = LE_MET,
+    LE_MET = construct_metier_l6(LE_GEAR, LE_MET_ORIGINAL, LE_MSZ, gear_target_ranges)
+  ) %>%
+  ungroup()
+
+
+ save(eflalo, file = paste0("results/Eflalo", years, ".RData"))
 
 }

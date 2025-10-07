@@ -13,3 +13,4 @@
 
 # Don't ignore .gitignore itself
 !.gitignore
+.Rproj.user

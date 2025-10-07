@@ -1,39 +1,62 @@
-for (years in (2011:2024)){
+# years <- 2022
 
-  ## note - the naming protocol changes in 2022, so this is a bit of a fix - not ideal
+for (years in (2011:2024)){
   vms_file <- list.files(
     path = paste0("data/", years, "/VMS/"),
-    pattern = paste0("^VMS[_-]", years, "\\.csv$"),
+    pattern = paste0("^(VMS[_-]", years, "|", years, "-VMS)\\.csv$"),
     full.names = TRUE
   )
   
-  # Read the file
   no.vms <- read.table(vms_file, header = T, sep = ";", dec = ",")
-
-no.vms <- as.data.frame(no.vms)
-
-tacsat2 <- no.vms %>%
-  # Select and rename columns
-  select(
-    VE_REF = Radiokallesignal,
-    SI_LATI = Breddegrad,
-    SI_LONG = Lengdegrad,
-    datetime = `Tidspunkt..UTC.`,
-    SI_SP = Fart,
-    SI_HE = Kurs
-  ) %>%
-  # Convert datetime and split into date and time
-  mutate(
-    datetime = as.POSIXct(no.vms$Tidspunkt..UTC., format = "%d.%m.%Y %H.%M.00,000000000"),
-    SI_DATE = format(datetime, "%d/%m/%Y"),
-    SI_TIME = format(datetime, "%H:%M")
-  ) %>%
-  # Select final columns in the correct order
-  select(VE_REF, SI_LATI, SI_LONG, SI_DATE, SI_TIME, SI_SP, SI_HE)
-
-print(years)
-
-save(tacsat2, file = paste0("results/Tacsat", years, ".RData"))
-
-
+  no.vms <- as.data.frame(no.vms)
+  
+  # Determine which datetime column exists
+  datetime_col <- if("Tidspunkt..UTC." %in% colnames(no.vms)) {
+    "Tidspunkt..UTC."
+  } else {
+    "Tidspunkt.UTC."
+  }
+  
+  if(years == 2022){
+    no.vms$Tidspunkt..UTC. <- substr(no.vms$Tidspunkt..UTC., 1, 19)
+  }
+  # Auto-detect datetime format by trying to parse first row
+  sample_datetime <- no.vms[[datetime_col]][1]
+  
+  # Auto-detect datetime format
+  datetime_format <- if(grepl("-[A-Z]{3}-", sample_datetime)) {
+    # Format like "01-JAN-24 15.40.00"
+    "%d-%b-%y %H.%M.%S"
+  } else if(grepl("\\.", sample_datetime) && grepl(" [0-9]{2}\\.[0-9]{2}\\.", sample_datetime)) {
+    # Format like "01.01.2022 00.00.00" 
+    "%d.%m.%Y %H.%M.%S"
+  } else {
+    # Format like "07.04.2011 09:30:00" (standard with colons in time)
+    "%d.%m.%Y %H:%M:%S"
+  }
+  
+  # Parse the datetime
+  no.vms$SI_DATIM <- as.POSIXct(no.vms[[datetime_col]], format = datetime_format, tz = "UTC")
+  
+  
+  tacsat2 <- no.vms %>%
+    select(
+      VE_REF = Radiokallesignal,
+      SI_LATI = Breddegrad,
+      SI_LONG = Lengdegrad,
+      datetime = all_of(datetime_col),
+      SI_SP = Fart,
+      SI_HE = Kurs
+    ) 
+  
+  tacsat2<- tacsat2 %>%
+    mutate(
+      datetime = as.POSIXct(datetime, format = datetime_format),
+      SI_DATE = format(datetime, "%d-%m-%Y"),
+      SI_TIME = format(datetime, "%H:%M")
+    ) %>%
+    select(VE_REF, SI_LATI, SI_LONG, SI_DATE, SI_TIME, SI_SP, SI_HE)
+  
+  print(years)
+  save(tacsat2, file = paste0("Results/Tacsat", years, ".RData"))
 }
