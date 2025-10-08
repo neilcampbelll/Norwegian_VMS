@@ -13,7 +13,11 @@ all_locodes <- read_csv(url, show_col_types = FALSE)
 # Filter for Norway only
 atlantic_ports <- all_locodes %>%
   filter(Country %in% c("NO", "LV", "EE", "LT", "FI", "SE", "BE", "IE", "FR", "DK",
-                        "NL", "ES", "DE", "IS", "GB", "NO", "PT", "FO", "RU", "GL"))
+                        "NL", "ES", "DE", "IS", "GB", "NO", "PT", "FO", "RU", "GL", "IS")) %>%
+ filter(grepl("1", Function)) %>% 
+ filter(!grepl("7", Function))
+# this filter picks out (1) ports, and tries to remove (7) fixed oil installations - not entirely successful! :-(
+
 
 # Parse coordinates and create spatial object
 
