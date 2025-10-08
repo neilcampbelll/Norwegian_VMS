@@ -1,7 +1,9 @@
 library(readr)
 library(dplyr)
 library(sf)
+library(vmstools)
 
+data(ICESareas)
 
 # Download from DataHub
 url <- "https://datahub.io/core/un-locode/r/code-list.csv"
@@ -9,9 +11,9 @@ cat("Downloading UN/LOCODE data...\n")
 all_locodes <- read_csv(url, show_col_types = FALSE)
 
 # Filter for Norway only
-norway_ports <- all_locodes %>%
-  filter(Country == "NO")
-
+atlantic_ports <- all_locodes %>%
+  filter(Country %in% c("NO", "LV", "EE", "LT", "FI", "SE", "BE", "IE", "FR", "DK",
+                        "NL", "ES", "DE", "IS", "GB", "NO", "PT", "FO", "RU", "GL"))
 
 # Parse coordinates and create spatial object
 
@@ -48,9 +50,9 @@ parse_coordinates <- function(coord_str) {
 
 # Apply coordinate parsing
 cat("\n\nParsing coordinates...\n")
-coords_parsed <- lapply(norway_ports$Coordinates, parse_coordinates)
+coords_parsed <- lapply(atlantic_ports$Coordinates, parse_coordinates)
 
-norway_ports <- norway_ports %>%
+atlantic_ports <- atlantic_ports %>%
   select(Country, Location, Name, Coordinates) %>%
   mutate(
     latitude = sapply(coords_parsed, function(x) x$lat),
@@ -58,8 +60,25 @@ norway_ports <- norway_ports %>%
   )
 
 # Create spatial object (remove rows without coordinates)
-norway_ports_sf <- norway_ports %>%
+atlantic_ports_sf <- atlantic_ports %>%
   filter(!is.na(latitude) & !is.na(longitude)) %>%
   st_as_sf(coords = c("longitude", "latitude"), crs = 4326)
 
-write_sf(norway_ports_sf, "Norwegian_ports.shp")
+
+
+ia <- st_as_sf(ICESareas, coords = c("SI_LONG", "SI_LATI"), crs = 4326) %>%
+  sf::st_make_valid() %>%
+  sf::st_zm()
+
+# Find intersections
+atlantic_ports_sf <- st_filter(atlantic_ports_sf, ia, .predicate = st_intersects)
+
+atlantic_ports_sf <- 
+  atlantic_ports_sf |> 
+  sf::st_transform(crs = 3857) |> 
+  # the range in harbour is always 3 km
+  sf::st_buffer(dist = 3000) |> 
+  sf::st_transform(crs = 4326) |> 
+  dplyr::select(Country, Location, Name)
+
+write_sf(atlantic_ports_sf, "Altantic_ports.shp")
