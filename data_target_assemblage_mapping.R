@@ -23,7 +23,7 @@ demersal <- c("COD", "HAD", "POK", "WHG", "LIN", "USK", "HAL", "GHL", "REB", "LE
     # Anadromous (ANA)
     anadromous <- c("SAL", "PIN","CHR")
     
-    # Catadromous (CAT - note: same code as catfish, context dependent)
+    # Catadromous 
     catadromous <- c()
     # Deepwater species (DWS)
     deepwaters <- c("ORY", "RNG", "SBR", "ALF", "CMO", "SRX", "CAS", "SRR", "KEF","COE","CFB")
