@@ -14,5 +14,8 @@ pacman::p_load(
   httr,
   stringr,
   tidyr,
-  rvest
+  rvest,
+  sf
 )
+
+data("ICESareas")
