@@ -380,10 +380,20 @@ eflalo <- eflalo %>%
   ungroup()
 
 # Derive ICES division from rectangle
-coords <- ICESrectangle2LonLat(eflalo$LE_RECT)
-names(coords) <- c("SI_LATI", "SI_LONG")
-eflalo$LE_DIV <- ICESarea(coords, ICESareas, st_crs = 4326)
-eflalo$LE_DIV <- ICESareas$Area_full[match(eflalo$LE_DIV, ICESareas$OBJECTID)]
+    unique_rects <- unique(eflalo$LE_RECT)
+    rect_coords <- ICESrectangle2LonLat(unique_rects)
+    names(rect_coords) <- c("SI_LATI", "SI_LONG")
+
+# Remove rectangles that couldn't be converted to coordinates
+    valid <- !is.na(rect_coords$SI_LATI)
+    rect_sf <- st_as_sf(rect_coords[valid, ], coords = c("SI_LONG", "SI_LATI"), crs = 4326)
+    nearest_idx <- st_nearest_feature(rect_sf, ICESareas)
+    
+    rect_lookup <- data.frame(
+      LE_RECT = unique_rects[valid],
+      LE_DIV = ICESareas$Area_Full[nearest_idx]
+    )
+    eflalo$LE_DIV <- rect_lookup$LE_DIV[match(eflalo$LE_RECT, rect_lookup$LE_RECT)]
 
  save(eflalo, file = paste0("results/eflalo_", years, ".RData"))
 
