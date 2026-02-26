@@ -1,11 +1,17 @@
-library(devtools)
-install_github("nielshintzen/vmstools/vmstools/")
+if (!require("pacman")) install.packages("pacman")
 
-library(dplyr)
-library(lubridate)
-library(vmstools)
-library(httr)
-library(stringr)
-library(tidyr)
-library(rvest)
-library(icesVocab)
+# Install vmstools from GitHub if not already installed
+if (!require("vmstools", quietly = TRUE)) {
+  pacman::p_load(devtools)
+  install_github("nielshintzen/vmstools/vmstools/")
+}
+
+pacman::p_load(
+  dplyr,
+  lubridate,
+  vmstools,
+  httr,
+  stringr,
+  tidyr,
+  rvest
+)
