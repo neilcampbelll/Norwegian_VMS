@@ -299,7 +299,8 @@ target_species <- read.csv("results/target_species.csv")
 
 eflalo <- combined_data %>%
   mutate(
-    FT_REF = LE_ID,  
+    FT_REF = paste0(VE_REF, format(dmy_hms(FT_DDATETIME), "%d%m%y%H%M"), 
+                    format(dmy_hms(FT_LDATETIME), "%d%m%y%H%M"), sep = ""),  
     LE_CDAT = date,
     FT_DTIME = substr(FT_DDATETIME, 12, 19),
     FT_DCOU = substr(FT_DHAR, 1, 2),
