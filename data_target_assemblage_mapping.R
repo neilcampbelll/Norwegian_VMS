@@ -5,9 +5,9 @@ demersal <- c("COD", "HAD", "POK", "WHG", "LIN", "USK", "HAL", "GHL", "REB", "LE
 "PLE", "DAB", "TUR", "SOL", "WIT", "BLI", "MON", "CAT", "RED", "REG", "GAD",
 "GUG", "HKE", "POL", "NOP", "ARY", "CUS", "GDG", "MZZ", "GFB", "RHG",
 "POR", "PLA", "PLZ", "RAJ", "RJB", "GAD", "ETX", "FBM", "HKN", "BOG",
-"SLX", "KCD", "LUM", "BIB", "CAB", "ACH", "HKX", "BOW", "KON", "TOA", "ANF", "SAI", "POC", "ASK","DGS")
+"SLX", "KCD", "LUM", "BIB", "CAB", "ACH", "HKX", "BOW", "KON", "TOA", "ANF", "SAI", "POC", "ASK","DGS", "CAA", "RRA")
 
-  crustaceans <-  c("NEP", "PRA", "PAN", "CRQ", "KRI", "CRN", "KCS", "CRU", "KCX", "PAL", "JCM", "LBA", "NKR", "AAS","PEN")
+  crustaceans <-  c("NEP", "PRA", "PAN", "CRQ", "KRI", "CRN", "KCS", "CRU", "KCX", "PAL", "JCM", "LBA", "NKR", "AAS","PEN", "CRE")
 
   small.pelagics <- c("HER", "SPR", "MAC", "CAP", "ANE", "PIL", "HOM", "WHB", "ARU", "SAN", "JAX", "ANI",
                     "USP", "MAV", "BHG", "LXX", "MUL", "ARG")

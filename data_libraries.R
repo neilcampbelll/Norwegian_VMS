@@ -10,6 +10,7 @@ pacman::p_load(
   dplyr,
   lubridate,
   vmstools,
+  icesVocab,
   httr,
   stringr,
   tidyr,

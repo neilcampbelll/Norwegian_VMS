@@ -2,6 +2,9 @@
 # Read in the look-up table
 target_species <- read.csv("results/target_species.csv")
 
+# load the metier list
+m6_ices <- icesVocab::getCodeList("Metier6_FishingActivity")
+
 ## Clean up the gear codes with a look-up table developed in data_invalid_gears.R
 
 # define a gear mapping - this is my best guess, being precautionary e.g. al LL are LLS
@@ -141,7 +144,9 @@ f3 <- f3 %>%
   filter(Aktivitet %in% c("I fiske", "Setting av redskap", "Hive / trekke")) %>%
   mutate(
     SI_LATI = as.numeric(gsub(",", ".", Startposisjon.bredde)),
-    SI_LONG = as.numeric(gsub(",", ".", Startposisjon.lengde)))
+    SI_LONG = as.numeric(gsub(",", ".", Startposisjon.lengde)),
+    Redskap.maskevidde = as.numeric(gsub(",", ".", Redskap.maskevidde))
+  )
 
 temp <- f3 %>% select(SI_LATI, SI_LONG)
 
@@ -375,6 +380,6 @@ eflalo <- eflalo %>%
   ungroup()
 
 
- save(eflalo, file = paste0("results/Eflalo", years, ".RData"))
+ save(eflalo, file = paste0("results/eflalo_", years, ".RData"))
 
 }
