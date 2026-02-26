@@ -379,6 +379,11 @@ eflalo <- eflalo %>%
   ) %>%
   ungroup()
 
+# Derive ICES division from rectangle
+coords <- ICESrectangle2LonLat(eflalo$LE_RECT)
+names(coords) <- c("SI_LATI", "SI_LONG")
+eflalo$LE_DIV <- ICESarea(coords, ICESareas, st_crs = 4326)
+eflalo$LE_DIV <- ICESareas$Area_full[match(eflalo$LE_DIV, ICESareas$OBJECTID)]
 
  save(eflalo, file = paste0("results/eflalo_", years, ".RData"))
 
