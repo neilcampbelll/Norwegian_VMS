@@ -106,3 +106,23 @@ find_best_mesh_range <- function(gear, target, mesh_size, lookup_table) {
   return(ranges[1])
 }
 
+
+# Helper function for robust reading and date parsing
+read_ers_file <- function(path) {
+  read_delim(
+    path, 
+    delim = ";", 
+    escape_double = TRUE, 
+    trim_ws = TRUE, 
+    guess_max = 100000, 
+    locale = locale(decimal_mark = ",", grouping_mark = ".")
+  )
+}
+
+parse_no_datetime <- function(date_col, time_col = NULL) {
+  # Combines date and time if both provided, handles dots, dashes, and Norwegian months
+  dt_string <- if(is.null(time_col)) date_col else paste(date_col, time_col)
+  parse_date_time(dt_string, orders = c("d.m.Y H:M:S", "d.m.Y H.M.S", "d-b-y H.M.S", "d/m/Y H:M:S", "d.m.Y H:M"))
+}
+
+
