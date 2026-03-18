@@ -27,14 +27,6 @@ date_sequence <- function(start_date, end_date) {
   seq(start_date, end_date, by = "day")
 }
 
-# function to match species codes and 
-find_l5_met <- function(species_code) {
-  assemblage <- target_species$Target_Assemblage[target_species$Species_Code == species_code]
-  if (length(assemblage) == 0) return(NA)
-  return(assemblage[1])
-}
-
-
 # Function to extract invalid gear codes from a year's data
 extract_invalid_gears <- function(eflalo, year) {
   m4_ices <- getCodeList("GearType")
